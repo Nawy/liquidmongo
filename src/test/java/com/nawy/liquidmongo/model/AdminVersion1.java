@@ -19,6 +19,9 @@ public class AdminVersion1 {
         this.credentials = credentials;
     }
 
+    public AdminVersion1() {
+    }
+
     public String getId() {
         return id;
     }

@@ -19,17 +19,26 @@ public class MigrationExecutor {
             return this;
         }
 
-        if (getVersion() > currentVersion) {
+        if (currentVersion > getVersion()) {
             if (newMigration == null) {
                 throw new UnreachebleMigrationVersionException();
             }
             return newMigration.findCurrentPosition(currentVersion);
         } else {
             if (oldMigration == null) {
-                throw new UnreachebleMigrationVersionException();
+                return this;
             }
             return oldMigration.findCurrentPosition(currentVersion);
         }
+    }
+
+    public int startMigrationTo(int targetVersion, int currentVersion, StorageAdapter storageAdapter) {
+        final int version = getVersion();
+        if (version == currentVersion) {
+            return version;
+        }
+        migration.migrate(storageAdapter);
+        return migrateTo(targetVersion, storageAdapter);
     }
 
     public int migrateTo(int targetVersion, StorageAdapter storageAdapter) {

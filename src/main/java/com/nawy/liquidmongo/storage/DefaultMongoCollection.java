@@ -2,6 +2,7 @@ package com.nawy.liquidmongo.storage;
 
 import com.mongodb.MongoNamespace;
 import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.InsertOneModel;
 import org.mongojack.JacksonMongoCollection;
 
@@ -13,6 +14,7 @@ import java.util.stream.StreamSupport;
 public class DefaultMongoCollection <ENTITY_T> implements StorageCollection <ENTITY_T> {
 
     private final JacksonMongoCollection<ENTITY_T> collection;
+    private final MongoDatabase mongoDatabase;
     private final String databaseName;
 
     public DefaultMongoCollection(
@@ -30,6 +32,7 @@ public class DefaultMongoCollection <ENTITY_T> implements StorageCollection <ENT
                         clazz
                 );
         this.databaseName = databaseName;
+        this.mongoDatabase = mongoClient.getDatabase(databaseName);
     }
 
     @Override
@@ -49,12 +52,18 @@ public class DefaultMongoCollection <ENTITY_T> implements StorageCollection <ENT
                 );
     }
 
+    @Override
+    public void createCollection(String collectionName) {
+        this.mongoDatabase.createCollection(collectionName);
+    }
+
+    @Override
     public void drop() {
         this.collection.drop();
     }
 
     @Override
     public void renameCollection(String collectionName) {
-        this.collection.renameCollection(new MongoNamespace(databaseName, "collectionName"));
+        this.collection.renameCollection(new MongoNamespace(databaseName, collectionName));
     }
 }

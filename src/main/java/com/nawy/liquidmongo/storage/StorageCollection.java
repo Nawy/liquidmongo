@@ -9,6 +9,7 @@ public interface StorageCollection <ENTITY_T> {
 
     Stream<ENTITY_T> findAll(int skipAmount, int pageSize);
 
+    void createCollection(String collectionName);
     void renameCollection(String collectionName);
 
     void drop();

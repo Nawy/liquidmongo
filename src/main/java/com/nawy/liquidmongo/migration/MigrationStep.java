@@ -4,18 +4,21 @@ import com.nawy.liquidmongo.storage.StorageAdapter;
 import com.nawy.liquidmongo.storage.StorageCollection;
 
 import java.util.List;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class MigrationStep <OLD_T, NEW_T> {
 
     private int pageSize = 100;
+    private String temporaryTablePrefix = UUID.randomUUID().toString() + "_";
+    private String changeLogPrefix = "";
 
     private int order;
     private String uniqueName;
-    private String newCollectionName;
-    private String oldCollectionName;
+    protected String newCollectionName;
+    protected String oldCollectionName;
     private String collectionName;
-    private Boolean copyToNew = true;
     private Boolean removeOld = true;
     private Class<OLD_T> oldClass;
     private Class<NEW_T> newClass;
@@ -28,8 +31,10 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
             Class<NEW_T> newClass
     ) {
         this.order = order;
-        this.uniqueName = oldCollectionName + "_" + newCollectionName;
+        this.uniqueName = changeLogPrefix + oldCollectionName + "_" + newCollectionName;
         this.collectionName = oldCollectionName;
+        this.oldClass = oldClass;
+        this.newClass = newClass;
     }
 
     public MigrationStep(
@@ -39,77 +44,81 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
             Class<NEW_T> newClass
     ) {
         this.order = order;
-        this.uniqueName = "migration_" + collectionName;
+        this.uniqueName = changeLogPrefix + collectionName;
         this.collectionName = collectionName;
+        this.oldClass = oldClass;
+        this.newClass = newClass;
     }
 
     public void migrate(StorageAdapter storage) {
 
-        StorageCollection<OLD_T> collection = storage.getCollection(collectionName, oldClass);
-        StorageCollection<NEW_T> newCollection = storage.getCollection(newCollectionName, newClass);
+        if (newCollectionName == null) {
+            final String temporaryName = collectionName + "_" + temporaryTablePrefix;
+            StorageCollection<OLD_T> currentCollection = storage.getCollection(collectionName, oldClass);
+            StorageCollection<NEW_T> newCollection = storage.getCollection(temporaryName, newClass);
 
-        int skipAmount = 0;
-        List<NEW_T> newValues;
-        do {
-            newValues = this.migrateList(collection, skipAmount);
+            newCollection.createCollection(temporaryName);
 
-            skipAmount += newValues.size();
+            this.copyTo(currentCollection, newCollection, this::migrateEntity);
+            currentCollection.drop();
 
-            if (copyToNew) {
-                int inserted = newCollection.bulkWrite(newValues);
-                if (inserted != newValues.size()) {
-                    throw new RuntimeException("Lost records!");
-                }
-            } else {
-                // TODO
+            newCollection.renameCollection(collectionName);
+        } else {
+            StorageCollection<OLD_T> currentCollection = storage.getCollection(oldCollectionName, oldClass);
+            StorageCollection<NEW_T> newCollection = storage.getCollection(newCollectionName, newClass);
+
+            newCollection.createCollection(newCollectionName);
+
+            this.copyTo(currentCollection, newCollection, this::migrateEntity);
+            if (removeOld) {
+                currentCollection.drop();
             }
-        } while (newValues.size() >= pageSize);
-
+        }
     }
 
     public void rollback(StorageAdapter storage) {
 
-        StorageCollection<NEW_T> collection = storage.getCollection(newCollectionName, newClass);
-        StorageCollection<OLD_T> oldCollection = storage.getCollection(oldCollectionName, oldClass);
+        if (newCollectionName == null) {
+            final String temporaryName = collectionName + "_" + temporaryTablePrefix;
+            StorageCollection<NEW_T> currentCollection = storage.getCollection(collectionName, newClass);
+            StorageCollection<OLD_T> previousCollection = storage.getCollection(temporaryName, oldClass);
+            previousCollection.createCollection(temporaryName);
 
-        if (copyToNew && !removeOld) {
-            oldCollection.drop();
+            this.copyTo(currentCollection, previousCollection, this::rollbackEntity);
+
+            currentCollection.drop();
+            previousCollection.renameCollection(collectionName);
+        } else {
+            StorageCollection<NEW_T> currentCollection = storage.getCollection(newCollectionName, newClass);
+            StorageCollection<OLD_T> previousCollection = storage.getCollection(oldCollectionName, oldClass);
+
+            previousCollection.drop();
+            previousCollection.createCollection(oldCollectionName);
+            this.copyTo(currentCollection, previousCollection, this::rollbackEntity);
+            currentCollection.drop();
         }
+    }
 
+    private <FROM_T, TO_T> void copyTo(
+            StorageCollection<FROM_T> fromCollection,
+            StorageCollection<TO_T> toCollection,
+            Function<FROM_T, TO_T> mapFunction
+
+    ) {
         int skipAmount = 0;
-        List<OLD_T> newValues;
+        List<TO_T> newValues;
         do {
-            newValues = this.rollbackList(collection, skipAmount);
+            newValues = fromCollection.findAll(skipAmount, pageSize)
+                    .map(mapFunction)
+                    .collect(Collectors.toList());
 
             skipAmount += newValues.size();
 
-            if (copyToNew) {
-                int inserted = oldCollection.bulkWrite(newValues);
-                if (inserted != newValues.size()) {
-                    throw new RuntimeException("Lost records!");
-                }
-            } else {
-                // TODO
+            int inserted = toCollection.bulkWrite(newValues);
+            if (inserted != newValues.size()) {
+                throw new RuntimeException("Lost records!");
             }
         } while (newValues.size() >= pageSize);
-    }
-
-    private List<NEW_T> migrateList(StorageCollection<OLD_T> collection, int skipAmount) {
-        return collection.findAll(skipAmount, pageSize)
-                .map(this::migrateEntity)
-                .collect(Collectors.toList());
-    }
-
-    private List<OLD_T> rollbackList(StorageCollection<NEW_T> collection, int skipAmount) {
-        return collection.findAll(skipAmount, pageSize)
-                .map(this::rollbackEntity)
-                .collect(Collectors.toList());
-    }
-
-    public void clean(StorageCollection collection) {
-        if (removeOld) {
-            collection.drop();
-        }
     }
 
     abstract NEW_T migrateEntity(OLD_T oldObject);
@@ -131,10 +140,6 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
         this.uniqueName = uniqueName;
     }
 
-    public String getNewCollectionName() {
-        return newCollectionName;
-    }
-
     public void setNewCollectionName(String newCollectionName) {
         this.newCollectionName = newCollectionName;
     }
@@ -153,14 +158,6 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
 
     public void setCollectionName(String collectionName) {
         this.collectionName = collectionName;
-    }
-
-    public Boolean getCopyToNew() {
-        return copyToNew;
-    }
-
-    public void setCopyToNew(Boolean copyToNew) {
-        this.copyToNew = copyToNew;
     }
 
     public Boolean getRemoveOld() {

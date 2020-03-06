@@ -21,7 +21,7 @@ public class Liquidmongo implements InitializingBean {
 
 
 	@Override
-	public void afterPropertiesSet() throws Exception {
+	public void afterPropertiesSet() {
 		migrations.stream()
 				.sorted(Comparator.comparingInt(Migration::getVersion))
 				.forEach(this::addMigrationToExecutor);
@@ -32,7 +32,7 @@ public class Liquidmongo implements InitializingBean {
 	public void execute() {
 		this.executor
 				.findCurrentPosition(currentVersion)
-				.migrateTo(targetVersion, storageAdapter);
+				.startMigrationTo(targetVersion, currentVersion, storageAdapter);
 	}
 
 	private void addMigrationToExecutor(Migration migration) {
@@ -55,5 +55,9 @@ public class Liquidmongo implements InitializingBean {
 
 	public void addMigration(Migration... migration) {
 		this.migrations.addAll(Arrays.asList(migration));
+	}
+
+	public void setCurrentVersion(int currentVersion) {
+		this.currentVersion = currentVersion;
 	}
 }
