@@ -14,31 +14,24 @@ public class MigrationExecutor {
         this.oldMigration = oldMigration;
     }
 
-    public MigrationExecutor findCurrentPosition(int currentVersion) {
-        if (getVersion() == currentVersion) {
+    public MigrationExecutor getMigration(int currentVersion) {
+        final int version = getVersion();
+
+        if (version == currentVersion) {
             return this;
         }
 
-        if (currentVersion > getVersion()) {
+        if (currentVersion > version) {
             if (newMigration == null) {
                 throw new UnreachebleMigrationVersionException();
             }
-            return newMigration.findCurrentPosition(currentVersion);
+            return newMigration.getMigration(currentVersion);
         } else {
             if (oldMigration == null) {
                 return this;
             }
-            return oldMigration.findCurrentPosition(currentVersion);
+            return oldMigration.getMigration(currentVersion);
         }
-    }
-
-    public int startMigrationTo(int targetVersion, int currentVersion, StorageAdapter storageAdapter) {
-        final int version = getVersion();
-        if (version == currentVersion) {
-            return version;
-        }
-        migration.migrate(storageAdapter);
-        return migrateTo(targetVersion, storageAdapter);
     }
 
     public int migrateTo(int targetVersion, StorageAdapter storageAdapter) {
@@ -49,21 +42,38 @@ public class MigrationExecutor {
         }
 
         if (targetVersion > version) {
-            migration.migrate(storageAdapter);
-
-            if (newMigration == null) {
-                throw new UnreachebleMigrationVersionException();
-            }
-
-            return newMigration.migrateTo(targetVersion, storageAdapter);
+            return migrateUp(targetVersion, storageAdapter);
         } else {
-            migration.rollback(storageAdapter);
-
-            if (oldMigration == null) {
-                throw new UnreachebleMigrationVersionException();
-            }
-            return oldMigration.migrateTo(targetVersion, storageAdapter);
+            return migrateDown(targetVersion, storageAdapter);
         }
+    }
+
+    private int migrateUp(int targetVersion, StorageAdapter storageAdapter) {
+        migration.migrate(storageAdapter);
+
+        final int version = getVersion();
+        if (newMigration == null || targetVersion == version) {
+            return version;
+        }
+
+        return newMigration.migrateUp(targetVersion, storageAdapter);
+
+    }
+
+    private int migrateDown(int targetVersion, StorageAdapter storageAdapter) {
+        final int version = getVersion();
+
+        if (targetVersion == version) {
+            return version;
+        }
+
+        migration.rollback(storageAdapter);
+
+        if (oldMigration == null) {
+            return version;
+        }
+
+        return oldMigration.migrateDown(targetVersion, storageAdapter);
     }
 
     public int getVersion() {

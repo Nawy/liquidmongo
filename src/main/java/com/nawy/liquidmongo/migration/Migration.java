@@ -1,6 +1,5 @@
 package com.nawy.liquidmongo.migration;
 
-import com.mongodb.client.MongoClient;
 import com.nawy.liquidmongo.storage.StorageAdapter;
 
 import java.util.ArrayList;

@@ -31,8 +31,8 @@ public class Liquidmongo implements InitializingBean {
 
 	public void execute() {
 		this.executor
-				.findCurrentPosition(currentVersion)
-				.startMigrationTo(targetVersion, currentVersion, storageAdapter);
+				.getMigration(currentVersion)
+				.migrateTo(targetVersion, storageAdapter);
 	}
 
 	private void addMigrationToExecutor(Migration migration) {
@@ -42,8 +42,6 @@ public class Liquidmongo implements InitializingBean {
 			this.executor.to(migration);
 		}
 	}
-
-	private void findCurrentVersion() {}
 
 	public void setStorageAdapter(StorageAdapter storageAdapter) {
 		this.storageAdapter = storageAdapter;
