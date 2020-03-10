@@ -1,13 +1,15 @@
 package nl.exmg.liquidmongo.dbtest.migration;
 
+import nl.exmg.liquidmongo.annotation.Migration;
 import nl.exmg.liquidmongo.migration.MigrationStep;
 import nl.exmg.liquidmongo.dbtest.model.AdminVersion1;
 import nl.exmg.liquidmongo.dbtest.model.AdminVersion2;
 
+@Migration(version = 2, order = 1)
 public class Admin1to2Migration extends MigrationStep<AdminVersion1, AdminVersion2> {
 
     public Admin1to2Migration(int order) {
-        super(order, "adminus", "admins", AdminVersion1.class, AdminVersion2.class);
+        super(order, "adminus", AdminVersion1.class, AdminVersion2.class);
     }
 
     @Override

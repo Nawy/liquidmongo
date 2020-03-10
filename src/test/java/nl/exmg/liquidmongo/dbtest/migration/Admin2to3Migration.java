@@ -1,17 +1,19 @@
 package nl.exmg.liquidmongo.dbtest.migration;
 
+import nl.exmg.liquidmongo.annotation.Migration;
 import nl.exmg.liquidmongo.migration.MigrationStep;
 import nl.exmg.liquidmongo.dbtest.model.AdminVersion2;
 import nl.exmg.liquidmongo.dbtest.model.AdminVersion3;
 import nl.exmg.liquidmongo.dbtest.model.CredentialsNew;
 import nl.exmg.liquidmongo.dbtest.model.CredentialsOld;
 
+@Migration(version = 3, order = 1)
 public class Admin2to3Migration extends MigrationStep<AdminVersion2, AdminVersion3> {
 
     private String defaultReferralLink = "referral_link_of_";
 
     public Admin2to3Migration(int order) {
-        super(order, "admins", AdminVersion2.class, AdminVersion3.class);
+        super(order, "adminus", "admin", AdminVersion2.class, AdminVersion3.class);
     }
 
     @Override

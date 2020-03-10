@@ -10,7 +10,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
-public class Liquidmongo implements InitializingBean {
+public class Liquidmongo {
 
 	private StorageAdapter storageAdapter;
 	private List<Migration> migrations = new ArrayList<>();
@@ -20,13 +20,10 @@ public class Liquidmongo implements InitializingBean {
 	private MigrationExecutor executor;
 
 
-	@Override
-	public void afterPropertiesSet() {
+	public void prepared() {
 		migrations.stream()
 				.sorted(Comparator.comparingInt(Migration::getVersion))
 				.forEach(this::addMigrationToExecutor);
-
-		this.execute();
 	}
 
 	public void execute() {

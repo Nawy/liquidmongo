@@ -1,14 +1,15 @@
 package nl.exmg.liquidmongo.dbtest.model;
 
+import org.bson.types.ObjectId;
 import org.mongojack.Id;
 
 public class UserVersion2 {
     @Id
-    private String id;
+    private ObjectId id;
     private String login;
     private Boolean isGuest;
 
-    public UserVersion2(String id, String login, Boolean isGuest) {
+    public UserVersion2(ObjectId id, String login, Boolean isGuest) {
         this.id = id;
         this.login = login;
         this.isGuest = isGuest;
@@ -17,11 +18,11 @@ public class UserVersion2 {
     public UserVersion2() {
     }
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 

@@ -44,6 +44,8 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
         this.order = order;
         this.uniqueName = changeLogPrefix + oldCollectionName + "_" + newCollectionName;
         this.collectionName = oldCollectionName;
+        this.oldCollectionName = oldCollectionName;
+        this.newCollectionName = newCollectionName;
         this.oldClass = oldClass;
         this.newClass = newClass;
     }
@@ -133,7 +135,9 @@ public abstract class MigrationStep <OLD_T, NEW_T> {
                     .collect(Collectors.toList());
 
             skipAmount += newValues.size();
-
+            if (newValues.size() == 0) {
+                throw new RuntimeException("Don't have any record to migrate");
+            }
             int inserted = toCollection.bulkWrite(newValues);
             if (inserted != newValues.size()) {
                 throw new RuntimeException("Lost records!");

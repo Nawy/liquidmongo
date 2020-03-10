@@ -35,7 +35,7 @@ class LiquidmongoTests {
 		);
 
 		liquidmongo.setTargetVersion(VERSION_2);
-		liquidmongo.afterPropertiesSet();
+		liquidmongo.prepared();
 	}
 
 }

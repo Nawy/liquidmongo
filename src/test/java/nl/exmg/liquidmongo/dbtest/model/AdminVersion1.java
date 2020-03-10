@@ -1,17 +1,18 @@
 package nl.exmg.liquidmongo.dbtest.model;
 
+import org.bson.types.ObjectId;
 import org.mongojack.Id;
 
 public class AdminVersion1 {
 
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
     private String email;
     private String levelName;
     private CredentialsOld credentials;
 
-    public AdminVersion1(String id, String name, String email, String levelName, CredentialsOld credentials) {
+    public AdminVersion1(ObjectId id, String name, String email, String levelName, CredentialsOld credentials) {
         this.id = id;
         this.name = name;
         this.email = email;
@@ -22,11 +23,11 @@ public class AdminVersion1 {
     public AdminVersion1() {
     }
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 

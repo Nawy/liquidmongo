@@ -1,9 +1,11 @@
 package nl.exmg.liquidmongo.dbtest.migration;
 
+import nl.exmg.liquidmongo.annotation.Migration;
 import nl.exmg.liquidmongo.migration.MigrationStep;
 import nl.exmg.liquidmongo.dbtest.model.UserVersion1;
 import nl.exmg.liquidmongo.dbtest.model.UserVersion2;
 
+@Migration(version = 2, order = 2)
 public class User1toUser2Migration extends MigrationStep<UserVersion1, UserVersion2> {
 
 
