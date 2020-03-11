@@ -2,6 +2,10 @@ package nl.exmg.liquidmongo.storage;
 
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Filters;
+import java.util.Arrays;
+import java.util.Collections;
 import nl.exmg.liquidmongo.model.MigrationDoc;
 import org.mongojack.JacksonMongoCollection;
 
@@ -47,6 +51,11 @@ public class DefaultChangelogCollection implements ChangelogCollection {
     }
 
     public MigrationDoc getLastStep() {
-        return null;
+        return collection
+            .aggregate(
+                Collections.singletonList(
+                    Accumulators.max("_id", "$id").getValue()
+                ))
+            .first();
     }
 }

@@ -10,7 +10,7 @@ public class MigrationDoc {
     @Id
     private ObjectId id;
     private String name;
-    private LocalDateTime time;
+    private LocalDateTime changeTime;
 
     private int fromVersion;
     private int toVersion;
@@ -24,10 +24,10 @@ public class MigrationDoc {
     public MigrationDoc() {
     }
 
-    public MigrationDoc(ObjectId id, String name, LocalDateTime time, int fromVersion, int toVersion, String fromDatabaseName, String toDatabaseName, String fromCollectionName, String toCollectionName) {
+    public MigrationDoc(ObjectId id, String name, LocalDateTime changeTime, int fromVersion, int toVersion, String fromDatabaseName, String toDatabaseName, String fromCollectionName, String toCollectionName) {
         this.id = id;
         this.name = name;
-        this.time = time;
+        this.changeTime = changeTime;
         this.fromVersion = fromVersion;
         this.toVersion = toVersion;
         this.fromDatabaseName = fromDatabaseName;
@@ -52,12 +52,12 @@ public class MigrationDoc {
         this.name = name;
     }
 
-    public LocalDateTime getTime() {
-        return time;
+    public LocalDateTime getChangeTime() {
+        return changeTime;
     }
 
-    public void setTime(LocalDateTime time) {
-        this.time = time;
+    public void setChangeTime(LocalDateTime changeTime) {
+        this.changeTime = changeTime;
     }
 
     public int getFromVersion() {
