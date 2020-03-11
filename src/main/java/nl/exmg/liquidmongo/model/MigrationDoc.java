@@ -1,5 +1,6 @@
 package nl.exmg.liquidmongo.model;
 
+import org.bson.types.ObjectId;
 import org.mongojack.Id;
 
 import java.time.LocalDateTime;
@@ -7,7 +8,7 @@ import java.time.LocalDateTime;
 public class MigrationDoc {
 
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
     private LocalDateTime time;
 
@@ -23,7 +24,7 @@ public class MigrationDoc {
     public MigrationDoc() {
     }
 
-    public MigrationDoc(String id, String name, LocalDateTime time, int fromVersion, int toVersion, String fromDatabaseName, String toDatabaseName, String fromCollectionName, String toCollectionName) {
+    public MigrationDoc(ObjectId id, String name, LocalDateTime time, int fromVersion, int toVersion, String fromDatabaseName, String toDatabaseName, String fromCollectionName, String toCollectionName) {
         this.id = id;
         this.name = name;
         this.time = time;
@@ -35,11 +36,11 @@ public class MigrationDoc {
         this.toCollectionName = toCollectionName;
     }
 
-    public String getId() {
+    public ObjectId getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(ObjectId id) {
         this.id = id;
     }
 

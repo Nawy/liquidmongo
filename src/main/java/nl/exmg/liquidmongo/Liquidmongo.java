@@ -2,8 +2,8 @@ package nl.exmg.liquidmongo;
 
 import nl.exmg.liquidmongo.migration.Migration;
 import nl.exmg.liquidmongo.migration.MigrationExecutor;
+import nl.exmg.liquidmongo.storage.ChangelogCollection;
 import nl.exmg.liquidmongo.storage.StorageAdapter;
-import org.springframework.beans.factory.InitializingBean;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,6 +13,8 @@ import java.util.List;
 public class Liquidmongo {
 
 	private StorageAdapter storageAdapter;
+	private ChangelogCollection changelogCollection;
+
 	private List<Migration> migrations = new ArrayList<>();
 	private int targetVersion;
 	private int currentVersion;
