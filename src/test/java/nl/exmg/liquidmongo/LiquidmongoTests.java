@@ -23,7 +23,6 @@ class LiquidmongoTests {
 	void test1() {
 
 		Liquidmongo liquidmongo = new Liquidmongo();
-		liquidmongo.setStorageAdapter(null);
 		liquidmongo.setCurrentVersion(-1);
 		liquidmongo.addMigrations(
 				new Migration(VERSION_2)
@@ -36,6 +35,7 @@ class LiquidmongoTests {
 
 		liquidmongo.setTargetVersion(VERSION_2);
 		liquidmongo.prepared();
+		liquidmongo.execute();
 	}
 
 }
